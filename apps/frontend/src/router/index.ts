@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth";
 import LoginView from "@/views/LoginView.vue";
 import HomeView from "@/views/HomeView.vue";
 import PlaceholderView from "@/views/PlaceholderView.vue";
+import RoutesView from "@/views/RoutesView.vue";
 
 const routes = [
   { path: "/login", name: "login", component: LoginView },
@@ -16,7 +17,7 @@ const routes = [
   {
     path: "/routes",
     name: "routes",
-    component: PlaceholderView,
+    component: RoutesView,
     meta: { requiresAuth: true, title: "航路规划" },
   },
   {
