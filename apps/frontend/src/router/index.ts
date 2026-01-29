@@ -4,6 +4,8 @@ import LoginView from "@/views/LoginView.vue";
 import HomeView from "@/views/HomeView.vue";
 import PlaceholderView from "@/views/PlaceholderView.vue";
 import TrainingLab from "@/views/TrainingLab.vue";
+import GeoIntelView from "@/views/GeoIntelView.vue";
+
 
 const routes = [
   { path: "/login", name: "login", component: LoginView },
@@ -35,7 +37,7 @@ const routes = [
   {
     path: "/maps",
     name: "maps",
-    component: PlaceholderView,
+    component:GeoIntelView,
     meta: { requiresAuth: true, title: "地理情报" },
   },
 ];
