@@ -4,8 +4,13 @@ import LoginView from "@/views/LoginView.vue";
 import HomeView from "@/views/HomeView.vue";
 import PlaceholderView from "@/views/PlaceholderView.vue";
 import TrainingLab from "@/views/TrainingLab.vue";
+<<<<<<< HEAD
 import GeoIntelView from "@/views/GeoIntelView.vue";
 
+=======
+import ApiKeysView from "@/views/ApiKeysView.vue";
+import NotamView from "@/views/NotamView.vue";
+>>>>>>> feature/notam-nhj
 
 const routes = [
   { path: "/login", name: "login", component: LoginView },
@@ -13,7 +18,7 @@ const routes = [
   {
     path: "/notam",
     name: "notam",
-    component: PlaceholderView,
+    component: NotamView,
     meta: { requiresAuth: true, title: "NOTAM 中心" },
   },
   {
@@ -31,7 +36,7 @@ const routes = [
   {
     path: "/api-keys",
     name: "api-keys",
-    component: PlaceholderView,
+    component: ApiKeysView,
     meta: { requiresAuth: true, title: "API 密钥库" },
   },
   {
