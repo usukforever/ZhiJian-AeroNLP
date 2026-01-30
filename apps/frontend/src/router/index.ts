@@ -8,6 +8,7 @@ import GeoIntelView from "@/views/GeoIntelView.vue";
 
 import ApiKeysView from "@/views/ApiKeysView.vue";
 import NotamView from "@/views/NotamView.vue";
+import RoutesView from "@/views/RoutesView.vue";
 
 const routes = [
   { path: "/login", name: "login", component: LoginView },
@@ -21,7 +22,7 @@ const routes = [
   {
     path: "/routes",
     name: "routes",
-    component: PlaceholderView,
+    component: RoutesView,
     meta: { requiresAuth: true, title: "航路规划" },
   },
   {
