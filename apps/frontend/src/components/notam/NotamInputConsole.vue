@@ -1,8 +1,35 @@
 <template>
-  <section :class="section" ref="containerRef">
-    <div :class="panelTitle">{{ pref.t('console.title') }}</div>
+  <section 
+    :class="css({ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', // 占满左侧栏高度
+      overflow: 'hidden', // 内部无滚动
+      position: 'relative'
+    })" 
+    ref="containerRef"
+  >
+    <div 
+      :class="css({ 
+        color: 'surface.textDim', 
+        fontSize: '10px', 
+        fontWeight: 'bold', 
+        letterSpacing: '1px', 
+        mb: '2',
+        flexShrink: 0 
+      })"
+    >
+      {{ pref.t('console.title') }}
+    </div>
     
-    <div :class="topPane" :style="{ height: `${splitRatio * 100}%` }">
+    <div 
+      :class="css({
+        overflow: 'hidden',
+        minHeight: '100px', // 最小保护高度
+        pb: '2' // 给 Resizer 留一点间隙
+      })" 
+      :style="{ height: `${splitRatio * 100}%` }"
+    >
       <NotamEditor
         v-model="rawText"
         :engine-ready="engineReady"
@@ -14,13 +41,40 @@
     </div>
 
     <div 
-      :class="resizer" 
+      :class="css({
+        height: '12px', // 增加热区高度，方便抓取
+        margin: '-6px 0', // 负 margin 抵消高度，使其不占用视觉布局空间
+        cursor: 'row-resize',
+        zIndex: '10',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s',
+        _hover: {
+          '& > div': { bg: 'brand.primary', width: '40px', height: '4px' } // Hover 时变宽变亮
+        }
+      })" 
       @mousedown.prevent="startDrag"
     >
-      <div :class="resizerHandle"></div>
+      <div 
+        :class="css({
+          width: '24px',
+          height: '3px',
+          bg: 'surface.outlineStrong',
+          borderRadius: 'full',
+          transition: 'all 0.2s'
+        })"
+      ></div>
     </div>
 
-    <div :class="bottomPane" :style="{ height: `${(1 - splitRatio) * 100}%` }">
+    <div 
+      :class="css({
+        overflow: 'hidden',
+        minHeight: '100px',
+        pt: '2'
+      })" 
+      :style="{ height: `${(1 - splitRatio) * 100}%` }"
+    >
       <NotamRadar />
     </div>
   </section>
@@ -36,24 +90,22 @@ import { usePreferenceStore } from "@/stores/preferenceStore";
 
 const pref = usePreferenceStore();
 const notamRunStore = useNotamRunStore();
-const props = defineProps<{
+defineProps<{
   engineReady: boolean;
 }>();
 
 const rawText = ref("");
 
 const handleClear = () => {
-  notamRunStore.updateGrounding("");
+  rawText.value = "";
+  // notamRunStore.updateGrounding("");
 };
 
 const handleExecute = () => {
   if (!rawText.value.trim()) return;
   
   // 直接调用 Store 创建任务
-  notamRunStore.createRun(rawText.value);
-  
-  // 可选：清空输入框，或保留方便修改
-  // rawText.value = ""; 
+  notamRunStore.analyzeContent(rawText.value);
 };
 
 const handleLoadExample = () => {
@@ -72,14 +124,21 @@ F) GND G) FL197`;
 watch(
   () => rawText.value,
   (value) => {
-    // console.log("[Console] Input change:", value); // 调试用
     notamRunStore.updateGrounding(value);
   },
-  { immediate: true } // [新增] 确保组件加载时如果有默认值也能触发
+  { immediate: true }
 );
 
-const handleBatchUpload = (file: File) => {
-  notamRunStore.simulateBatch();
+// 处理文件上传
+const handleBatchUpload = async (file: File) => {
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    notamRunStore.analyzeContent(text);
+  } catch (e) {
+    console.error("Failed to read file", e);
+  }
 };
 
 // --- Resizer Logic ---
@@ -92,14 +151,13 @@ const startDrag = () => {
   window.addEventListener("mousemove", onDrag);
   window.addEventListener("mouseup", stopDrag);
   document.body.style.cursor = "row-resize";
-  document.body.style.userSelect = "none"; // 防止拖拽时选中文字
+  document.body.style.userSelect = "none";
 };
 
 const onDrag = (e: MouseEvent) => {
   if (!containerRef.value) return;
   const rect = containerRef.value.getBoundingClientRect();
   const offsetY = e.clientY - rect.top;
-  // 限制拖拽范围在 20% - 80% 之间
   const newRatio = Math.max(0.2, Math.min(0.8, offsetY / rect.height));
   splitRatio.value = newRatio;
 };
@@ -115,58 +173,5 @@ const stopDrag = () => {
 onUnmounted(() => {
   window.removeEventListener("mousemove", onDrag);
   window.removeEventListener("mouseup", stopDrag);
-});
-
-// --- Styles ---
-
-const section = css({ 
-  display: "flex", 
-  flexDirection: "column", 
-  height: "100%", // 占满左侧栏高度
-  overflow: "hidden", // 内部无滚动
-  position: "relative"
-});
-
-const panelTitle = css({ 
-  color: "surface.textDim", 
-  fontSize: "10px", 
-  fontWeight: "bold", 
-  letterSpacing: "1px", 
-  mb: "2",
-  flexShrink: 0 
-});
-
-const topPane = css({
-  overflow: "hidden",
-  minHeight: "100px", // 最小保护高度
-  pb: "2" // 给 Resizer 留一点间隙
-});
-
-const bottomPane = css({
-  overflow: "hidden",
-  minHeight: "100px",
-  pt: "2"
-});
-
-const resizer = css({
-  height: "12px", // 增加热区高度，方便抓取
-  margin: "-6px 0", // 负 margin 抵消高度，使其不占用视觉布局空间
-  cursor: "row-resize",
-  zIndex: "10",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "all 0.2s",
-  _hover: {
-    "& > div": { bg: "brand.primary", width: "40px", height: "4px" } // Hover 时变宽变亮
-  }
-});
-
-const resizerHandle = css({
-  width: "24px",
-  height: "3px",
-  bg: "surface.outlineStrong",
-  borderRadius: "full",
-  transition: "all 0.2s"
 });
 </script>

@@ -43,13 +43,31 @@ export default defineConfig({
             info:     { value: "#3b82f6" }, // Blue-500
             active:   { value: "#22c55e" }, // Green-500
             pending:  { value: "#f97316" }, // Orange-500
-            expired:  { value: "#64748b" }  // Slate-500
+            expired:  { value: "#64748b" },  // Slate-500
+            perm:     { value: "#7c3aed" }  // [新增] Purple-600
+          },
+          // [新增] 智能体专属配色 (文字与背景分离，方便组合)
+          agents: {
+            discovery: {
+              text: { value: "#1a74ff" },
+              bg:   { value: "rgba(26, 116, 255, 0.1)" }
+            },
+            analyst: {
+              text: { value: "#a855f7" },
+              bg:   { value: "rgba(168, 85, 247, 0.1)" }
+            },
+            validator: {
+              text: { value: "#10b981" },
+              bg:   { value: "rgba(16, 185, 129, 0.1)" }
+            }
           },
           surface: {
             canvas: { value: "#f3f5fb" },
             base: { value: "#ffffff" },
             elevated: { value: "#f7f9ff" },
             sunken: { value: "#eef2f9" },
+            // [新增] 悬浮层/菜单专用背景
+            popover: { value: "#ffffff" },
             outline: { value: "rgba(15, 23, 42, 0.12)" },
             outlineStrong: { value: "rgba(15, 23, 42, 0.18)" },
             text: { value: "#0b1220" },
@@ -60,6 +78,28 @@ export default defineConfig({
         fonts: {
           mono: { value: "'IBM Plex Mono', monospace" },
           sans: { value: "'Space Grotesk', system-ui, sans-serif" }
+        }
+      },
+      semanticTokens: {
+        colors: {
+          // ... 原有 colors
+          
+          // [!code ++] [新增] 实体卡片专用配色 (支持浅色/深色模式)
+          entity: {
+            critical: {
+              bg: { value: { base: '#FEF2F2', _dark: 'rgba(239, 68, 68, 0.15)' } },      // Red 50
+              border: { value: { base: '#FECACA', _dark: 'rgba(239, 68, 68, 0.3)' } }    // Red 200
+            },
+            warning: {
+              bg: { value: { base: '#FFFBEB', _dark: 'rgba(245, 158, 11, 0.15)' } },     // Amber 50
+              border: { value: { base: '#FDE68A', _dark: 'rgba(245, 158, 11, 0.3)' } }   // Amber 200
+            },
+            info: {
+              bg: { value: { base: '#EFF6FF', _dark: 'rgba(59, 130, 246, 0.15)' } },     // Blue 50
+              border: { value: { base: '#BFDBFE', _dark: 'rgba(59, 130, 246, 0.3)' } }   // Blue 200
+            }
+          }
+          
         }
       }
     }
@@ -89,13 +129,31 @@ export default defineConfig({
             info:     { value: "#60a5fa" }, // Blue-400
             active:   { value: "#4ade80" }, // Green-400
             pending:  { value: "#fb923c" }, // Orange-400
-            expired:  { value: "#94a3b8" }  // Slate-400
+            expired:  { value: "#94a3b8" }, // Slate-400
+            perm:     { value: "#a78bfa" }  // [新增] Purple-400
+          },
+          // [新增] 深色模式智能体配色
+          agents: {
+            discovery: {
+              text: { value: "#4c8dff" },
+              bg:   { value: "rgba(76, 141, 255, 0.15)" }
+            },
+            analyst: {
+              text: { value: "#c084fc" },
+              bg:   { value: "rgba(192, 132, 252, 0.15)" }
+            },
+            validator: {
+              text: { value: "#4ade80" },
+              bg:   { value: "rgba(74, 222, 128, 0.15)" }
+            }
           },
           surface: {
             canvas: { value: "#0b1020" },
             base: { value: "#111a2b" },
             elevated: { value: "#16213a" },
             sunken: { value: "#0e1627" },
+            // [新增] 深色模式下的悬浮层，比 Base 亮，带一点蓝调
+            popover: { value: "#1e293b" },
             outline: { value: "rgba(203, 214, 255, 0.14)" },
             outlineStrong: { value: "rgba(203, 214, 255, 0.22)" },
             text: { value: "#e7edff" },
