@@ -437,8 +437,10 @@ const shouldPulse = computed(() => {
 });
 
 const handleLocate = () => {
-  if (props.notam.airportCode && props.notam.airportCode !== 'PENDING') {
-    store.updateGrounding(props.notam.airportCode);
+  const rawCode = props.notam.airportCode;
+  const code = typeof rawCode === 'string' ? rawCode.trim() : '';
+  if (code && code.toUpperCase() !== 'PENDING') {
+    store.updateGrounding(code);
   }
 };
 
