@@ -1,4 +1,5 @@
-import { NotamCardModel } from "@/models/NotamCard";
+import { NotamCardModel, REGEX_AIRPORT } from "@/models/NotamCard";
+import { notamAnalysisService } from "@/services/notamAnalysisService";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
@@ -41,6 +42,9 @@ export const useNotamRunStore = defineStore("notam-run", () => {
   // 2. 全局交互状态
   const currentGrounding = ref<GroundingContext | null>(null);
 
+  // [新增] 输入解码中标记 (用于显示单个 Skeleton 占位)
+  const isDecoding = ref(false);
+
   // 3. 雷达监控列表
   const targets = ref<RadarTarget[]>([
     { code: "ZSPD", name: "Shanghai Pudong", fir: "ZSHA", signalStrength: -42, status: 'scanning', lastPing: Date.now() },
@@ -55,37 +59,89 @@ export const useNotamRunStore = defineStore("notam-run", () => {
    * 创建一个新任务
    */
   const createRun = (rawText: string) => {
-    // 1. 实例化模型
-    const card = new NotamCardModel(rawText);
+    // 1. 预判机场代码
+    const airportMatch = rawText.match(REGEX_AIRPORT);
+    // 兜底：如果没找到 A) 项，找文中第一个四字码
+    const fallbackCode = !airportMatch ? rawText.match(/\b[A-Z]{4}\b/) : null;
     
-    // 2. 加入列表 (最新在最前)
-    cards.value.unshift(card);
-    
-    // 3. 让卡片自己开始干活
-    card.startAnalysis();
-    
-    return card.id;
-  };
+    const targetCode = airportMatch ? airportMatch[1] : (fallbackCode ? fallbackCode[0] : null);
 
-  // [新增] 模拟批量运行
-  const simulateBatch = async () => {
-    const demos = [
-      "A0521/24 NOTAMN... ZBAA ... RWY 18L/36R CLSD DUE TO MAINT...",
-      "C1024/24 NOTAMN... ZSPD ... ILS RWY 17L GP U/S...",
-      "A0111/24 NOTAMN... VHHH ... TWY A CLSD PERM...",
-      "A0882/24 NOTAMN... ZGGG ... FIREWORKS DISPLAY..."
-    ];
+    // 2. 查找是否存在该机场的卡片
+    const existingCardIndex = targetCode 
+      ? cards.value.findIndex(c => c.airportCode === targetCode)
+      : -1;
 
-    for (const text of demos) {
-      createRun(text);
-      // 错峰触发，营造流式感
-      await new Promise(r => setTimeout(r, 600)); 
+    if (existingCardIndex !== -1) {
+      // --- 场景 A: 机场已存在 (Update) ---
+      const card = cards.value[existingCardIndex];
+      
+      // 将卡片移到列表最前面 (置顶)，模拟“最新消息”
+      cards.value.splice(existingCardIndex, 1);
+      cards.value.unshift(card);
+      
+      // 触发卡片内部刷新
+      card.refresh(rawText);
+      card.startAnalysis();
+      return card.id;
+
+    } else {
+      // --- 场景 B: 新机场 (Create) ---
+      const card = new NotamCardModel(rawText);
+      cards.value.unshift(card);
+      card.startAnalysis();
+      return card.id;
     }
   };
 
+  /**
+   * [重构] 分析并执行 - 统一入口
+   * 无论是输入框回车还是文件上传，都调用此方法
+   */
+  async function analyzeContent(rawInput: string) {
+    isDecoding.value = true;
+    // 1. 调用 Service 进行分包处理
+    const chunks = notamAnalysisService.preProcessInput(rawInput);
+
+    if (chunks.length === 0) {
+      isDecoding.value = false;
+      return;
+    }
+
+    // 3. 逐条处理
+    // 使用 for...of 循环配合 await，人为制造一点处理节奏感，避免瞬间卡顿
+    for (const chunk of chunks) {
+      // 这里的 createRun 内部已经包含了：
+      // - 正则提取机场代码
+      // - findIndex 查找是否存在现有卡片
+      // - 存在 -> 移到顶部并 refresh (触发 update 逻辑)
+      // - 不存在 -> unshift 新建 (触发 create 逻辑)
+      createRun(chunk);
+      
+      // 稍微模拟一点间隔，让 UI 有逐个弹出的效果
+      await new Promise(r => setTimeout(r, 200)); 
+      
+    }
+    isDecoding.value = false;
+  }
+
+  // [修改] 模拟批量运行 (保留用于测试，但改用新的 analyzeContent)
+//   const simulateBatch = async () => {
+//     // 模拟数据
+//     const rawDemoData = `
+// A0521/24 NOTAMN... ZBAA ... RWY 18L/36R CLSD...
+// C1024/24 NOTAMN... ZSPD ... ILS RWY 17L GP U/S...
+// A0111/24 NOTAMN... VHHH ... TWY A CLSD PERM...
+// A0882/24 NOTAMN... ZGGG ... FIREWORKS DISPLAY...
+//     `;
+//     // 直接走统一入口
+//     await analyzeContent(rawDemoData);
+//   }
+
   const clearAll = () => {
+    cards.value.forEach(card => card.onRemove());
     cards.value = [];
     currentGrounding.value = null;
+    isDecoding.value = false;
   };
 
   // [修改] 调试版 Grounding 更新逻辑
@@ -153,10 +209,12 @@ export const useNotamRunStore = defineStore("notam-run", () => {
     cards,
     currentGrounding,
     targets,
+    isDecoding, // 导出
     
     // Card Actions
-    createRun,
-    simulateBatch,
+    // createRun,
+    analyzeContent, // 导出
+    // simulateBatch,
     clearAll,
     
     // Global Actions
