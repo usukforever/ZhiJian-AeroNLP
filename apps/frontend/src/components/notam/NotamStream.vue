@@ -63,7 +63,7 @@
 
     <div :class="css({ flex: 1, overflowY: 'auto', p: '4' })">
       <div 
-        v-if="store.cards.length === 0 && store.pendingCount === 0" 
+        v-if="store.cards.length === 0 && !store.isDecoding" 
         :class="css({
           h: '100%', 
           display: 'flex', 
@@ -80,8 +80,8 @@
 
       <div :class="css({ display: 'flex', flexDirection: 'column', gap: '0' })">
         <div 
-          v-for="n in store.pendingCount" 
-          :key="`skel-${n}`" 
+          v-if="store.isDecoding" 
+          :key="`skel-decoding`" 
           :class="css({
             bg: 'surface.base',
             borderRadius: 'lg',
@@ -137,7 +137,7 @@ const pref = usePreferenceStore();
 // 计算正在处理的总数 (队列中 + 分析中)
 const totalActiveCount = computed(() => {
   const analyzing = store.cards.filter(c => c.stage !== 'finalized' && c.stage !== 'failed').length;
-  return store.pendingCount + analyzing;
+  return analyzing + (store.isDecoding ? 1 : 0);
 });
 
 // [新增] 监听任务完成状态

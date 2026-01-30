@@ -40,7 +40,12 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * 模拟后端 AI 解析服务
  * 职责：接收原始文本 -> 输出推理链 + 结构化数据
  */
+const canceledAnalyses = new Set<string>();
+
 export const notamAnalysisService = {
+  cancelAnalysis(id: string) {
+    canceledAnalyses.add(id);
+  },
   // [新增] 预处理：将原始大文本切分为独立的 NOTAM 片段
   // 职责：纯粹的文本处理，不涉及 Store 业务
   preProcessInput(rawInput: string): string[] {
@@ -69,12 +74,15 @@ export const notamAnalysisService = {
    * 核心流式分析器
    * 模拟后端 Agent Workflow: Discovery -> Analyst -> Validator
    */
-  async *analyzeStream(rawText: string, airportCode: string): AsyncGenerator<StreamEvent> {
+  async *analyzeStream(rawText: string, airportCode: string, analysisId?: string): AsyncGenerator<StreamEvent> {
+    const isCanceled = () => (analysisId ? canceledAnalyses.has(analysisId) : false);
     
     try {
+      if (isCanceled()) return;
       // --- Phase 0: Connection ---
       yield { type: AnalysisEventType.STAGE_CHANGE, value: NotamStage.CONNECTING };
       await sleep(600); // 模拟握手延迟
+      if (isCanceled()) return;
 
       // --- Phase 1: Discovery Agent (信息提取) ---
       yield { type: AnalysisEventType.STAGE_CHANGE, value: NotamStage.DISCOVERING };
@@ -84,6 +92,7 @@ export const notamAnalysisService = {
       yield* simulateTokenStream(discoveryLog);
       
       await sleep(400);
+      if (isCanceled()) return;
 
       // [Mock] 模拟 Discovery 发现了一些实体，但还没分析出严重程度
       // 这里先根据 Q 行或者正则提取出初步的 ID 和 类型
@@ -179,6 +188,7 @@ export const notamAnalysisService = {
       yield { type: AnalysisEventType.DATA_UPDATE, data: analystData };
       
       await sleep(300);
+      if (isCanceled()) return;
 
       // --- Phase 3: Validator Agent (校验与格式化) ---
       yield { type: AnalysisEventType.STAGE_CHANGE, value: NotamStage.VALIDATING };
@@ -209,6 +219,8 @@ export const notamAnalysisService = {
     } catch (e) {
       console.error("Stream Error:", e);
       yield { type: AnalysisEventType.ERROR, message: "Internal Reasoning Error" };
+    } finally {
+      if (analysisId) canceledAnalyses.delete(analysisId);
     }
   }
 };

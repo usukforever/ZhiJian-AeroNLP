@@ -42,8 +42,8 @@ export const useNotamRunStore = defineStore("notam-run", () => {
   // 2. 全局交互状态
   const currentGrounding = ref<GroundingContext | null>(null);
 
-  // [新增] 待处理任务计数 (用于显示 Skeleton 占位)
-  const pendingCount = ref(0);
+  // [新增] 输入解码中标记 (用于显示单个 Skeleton 占位)
+  const isDecoding = ref(false);
 
   // 3. 雷达监控列表
   const targets = ref<RadarTarget[]>([
@@ -98,13 +98,14 @@ export const useNotamRunStore = defineStore("notam-run", () => {
    * 无论是输入框回车还是文件上传，都调用此方法
    */
   async function analyzeContent(rawInput: string) {
+    isDecoding.value = true;
     // 1. 调用 Service 进行分包处理
     const chunks = notamAnalysisService.preProcessInput(rawInput);
 
-    if (chunks.length === 0) return;
-
-    // 2. 更新 Pending 计数 (驱动 UI 骨架屏)
-    pendingCount.value += chunks.length;
+    if (chunks.length === 0) {
+      isDecoding.value = false;
+      return;
+    }
 
     // 3. 逐条处理
     // 使用 for...of 循环配合 await，人为制造一点处理节奏感，避免瞬间卡顿
@@ -119,8 +120,8 @@ export const useNotamRunStore = defineStore("notam-run", () => {
       // 稍微模拟一点间隔，让 UI 有逐个弹出的效果
       await new Promise(r => setTimeout(r, 200)); 
       
-      pendingCount.value--;
     }
+    isDecoding.value = false;
   }
 
   // [修改] 模拟批量运行 (保留用于测试，但改用新的 analyzeContent)
@@ -137,9 +138,10 @@ export const useNotamRunStore = defineStore("notam-run", () => {
 //   }
 
   const clearAll = () => {
+    cards.value.forEach(card => card.onRemove());
     cards.value = [];
     currentGrounding.value = null;
-    pendingCount.value = 0;
+    isDecoding.value = false;
   };
 
   // [修改] 调试版 Grounding 更新逻辑
@@ -207,7 +209,7 @@ export const useNotamRunStore = defineStore("notam-run", () => {
     cards,
     currentGrounding,
     targets,
-    pendingCount, // 导出
+    isDecoding, // 导出
     
     // Card Actions
     // createRun,

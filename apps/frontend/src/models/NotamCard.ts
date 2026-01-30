@@ -183,6 +183,8 @@ export class NotamCardModel {
   // UI 状态
   stage: NotamStage = NotamStage.IDLE;
   isExpanded: boolean = false; // 控制 UI 折叠/展开
+  isAnalyzing: boolean = false;
+  cancelRequested: boolean = false;
   
   // AI 思考过程 (Log Stream)
   thoughts: ThoughtLog[] = [];
@@ -256,10 +258,10 @@ export class NotamCardModel {
 
   // --- 行为方法 (Actions) ---
 
-  
-
   // 刷新逻辑
   async refresh(newRawText: string) {
+    this.cancelRequested = false;
+    this.isAnalyzing = false;
     if (this.stage === NotamStage.FINALIZED) {
       this.history.unshift({
         timestamp: Date.now(),
@@ -308,15 +310,18 @@ export class NotamCardModel {
    * 对接 Service 的 Async Generator，实现真正的流式响应
    */
   async startAnalysis() {
+    this.cancelRequested = false;
+    this.isAnalyzing = true;
     this.stage = NotamStage.CONNECTING;
     this.isExpanded = true;
     
     try {
       // 1. 建立流连接
-      const stream = notamAnalysisService.analyzeStream(this.rawText, this.airportCode);
+      const stream = notamAnalysisService.analyzeStream(this.rawText, this.airportCode, this.id);
       
       // 2. 消费流事件 (Consumer Pattern)
       for await (const event of stream) {
+        if (this.cancelRequested) break;
         this.handleStreamEvent(event);
       }
 
@@ -330,6 +335,8 @@ export class NotamCardModel {
         timestamp: Date.now(),
         isStreaming: false
       });
+    } finally {
+      this.isAnalyzing = false;
     }
   }
 
@@ -338,6 +345,7 @@ export class NotamCardModel {
    * 将复杂的 switch 逻辑抽离，保持主流程清晰
    */
   handleStreamEvent(event: StreamEvent) {
+    if (this.cancelRequested) return;
     switch (event.type) {
       case AnalysisEventType.STAGE_CHANGE:
         // 阶段切换时，强制结束上一段思考
@@ -400,5 +408,14 @@ export class NotamCardModel {
   // 手动更新数据的入口 (用于 Human-in-the-loop 修正)
   updateData(patch: Partial<NotamStructuredData>) {
     Object.assign(this.data, patch);
+  }
+
+  // [新增] 卡片移除回调：终止当前分析并通知服务
+  onRemove() {
+    this.cancelRequested = true;
+    this.isAnalyzing = false;
+    this.finishCurrentStreamingLog();
+    this.stage = NotamStage.IDLE;
+    notamAnalysisService.cancelAnalysis(this.id);
   }
 }
