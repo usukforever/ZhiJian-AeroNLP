@@ -28,6 +28,12 @@
           查询航路
         </button>
       </div>
+
+      <button class="btn btn-primary" @click="goHome">
+        <span class="btn-dot" aria-hidden="true"></span>
+        返回总览
+      </button>
+
     </aside>
 
     <!-- 右侧：结果展示 -->
@@ -85,10 +91,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { useRouter } from "vue-router";
 import * as echarts from 'echarts'
 import { routeTable, airports } from './mock/routes'
 import { notamList } from './mock/notam'
 import { reroutePlans } from './mock/reroute'
+
+const router = useRouter();
+const goHome = () => router.push("/");
 
 const from = ref('')
 const to = ref('')

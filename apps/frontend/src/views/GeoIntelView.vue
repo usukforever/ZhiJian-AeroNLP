@@ -270,6 +270,11 @@ onBeforeUnmount(() => {
     rgba(160, 110, 255, 0.18),
     rgba(0, 255, 198, 0.18)
   );
+  mask: 
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
