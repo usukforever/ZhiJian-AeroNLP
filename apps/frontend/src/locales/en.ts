@@ -53,6 +53,7 @@ export default {
     batchJob: "BATCH JOB",
     processing: "PROCESSING",
     tasks: "TASKS",
+    complete: "COMPLETE",
     inputPayload: "Input Payload",
     reasoningChain: "Reasoning Chain",
     processLog: "Process Log",

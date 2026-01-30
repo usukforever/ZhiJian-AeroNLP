@@ -53,6 +53,7 @@ export default {
     batchJob: "批量任务",
     processing: "正在处理",
     tasks: "个任务",
+    complete: "处理完成",
     inputPayload: "输入载荷",
     reasoningChain: "推理链",
     processLog: "处理日志",
