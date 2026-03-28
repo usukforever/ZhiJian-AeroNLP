@@ -12,7 +12,6 @@ from src.api_manager import create_api_manager
 from config import prompts as prompt_module
 
 st.set_page_config(page_title='航行情报大模型 - NOTAM 解析', layout='wide')
-
 # ---------------------- Utility Functions ---------------------- #
 @st.cache_resource(show_spinner=False)
 def load_config():
