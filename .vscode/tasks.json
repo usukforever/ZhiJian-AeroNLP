@@ -17,9 +17,9 @@
     },
 
     {
-      "label": "frontend:deps (npm ci)",
+      "label": "frontend:deps (npm install)",
       "type": "shell",
-      "command": "npm ci",
+      "command": "npm instal",
       "options": {
         "cwd": "${workspaceFolder}/apps/frontend"
       },
@@ -82,7 +82,7 @@
       "label": "deps:all",
       "dependsOn": [
         "backend:deps (uv sync)",
-        "frontend:deps (npm ci)",
+        "frontend:deps (npm install)",
         "frontend:styles (panda codegen)"
       ],
       "dependsOrder": "sequence"
