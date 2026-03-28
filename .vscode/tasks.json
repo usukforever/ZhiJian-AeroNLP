@@ -15,10 +15,26 @@
       },
       "problemMatcher": []
     },
+
     {
-      "label": "frontend:deps (npm install)",
+      "label": "frontend:deps (npm ci)",
       "type": "shell",
-      "command": "npm install",
+      "command": "npm ci",
+      "options": {
+        "cwd": "${workspaceFolder}/apps/frontend"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+
+    {
+      "label": "frontend:styles (panda codegen)",
+      "type": "shell",
+      "command": "npx panda codegen && npx panda cssgen -o src/styled-system/styles.css",
       "options": {
         "cwd": "${workspaceFolder}/apps/frontend"
       },
@@ -45,6 +61,7 @@
         "clear": false
       }
     },
+
     {
       "label": "frontend:dev",
       "type": "shell",
@@ -65,10 +82,12 @@
       "label": "deps:all",
       "dependsOn": [
         "backend:deps (uv sync)",
-        "frontend:deps (npm install)"
+        "frontend:deps (npm ci)",
+        "frontend:styles (panda codegen)"
       ],
       "dependsOrder": "sequence"
     },
+
     {
       "label": "dev:all",
       "dependsOn": [

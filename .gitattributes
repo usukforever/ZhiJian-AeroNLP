@@ -1,13 +1,29 @@
-# 强制所有人使用 LF（推荐）
-* text eol=lf
+# ===== 默认规则 =====
+# 所有“未特殊声明”的文件，当作文本，统一 LF
+* text=auto eol=lf
 
-# 明确常见文件
+# ===== 明确的文本文件 =====
 *.py     text eol=lf
 *.md     text eol=lf
 *.toml   text eol=lf
 *.lock   text eol=lf
 *.json   text eol=lf
 *.yml    text eol=lf
-*.yaml  text eol=lf
+*.yaml   text eol=lf
 *.ts     text eol=lf
 *.vue    text eol=lf
+*.js     text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+
+# ===== 二进制文件（重点！！）=====
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.gif    binary
+*.svg    binary
+*.ico    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary

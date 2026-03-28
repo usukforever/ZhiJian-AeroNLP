@@ -3,6 +3,12 @@ import { useAuthStore } from "@/stores/auth";
 import LoginView from "@/views/LoginView.vue";
 import HomeView from "@/views/HomeView.vue";
 import PlaceholderView from "@/views/PlaceholderView.vue";
+import TrainingLab from "@/views/TrainingLab.vue";
+import GeoIntelView from "@/views/GeoIntelView.vue";
+
+import ApiKeysView from "@/views/ApiKeysView.vue";
+import NotamView from "@/views/NotamView.vue";
+import RoutesView from "@/views/RoutesView.vue";
 
 const routes = [
   { path: "/login", name: "login", component: LoginView },
@@ -10,31 +16,31 @@ const routes = [
   {
     path: "/notam",
     name: "notam",
-    component: PlaceholderView,
+    component: NotamView,
     meta: { requiresAuth: true, title: "NOTAM 中心" },
   },
   {
     path: "/routes",
     name: "routes",
-    component: PlaceholderView,
+    component: RoutesView,
     meta: { requiresAuth: true, title: "航路规划" },
   },
   {
     path: "/training",
     name: "training",
-    component: PlaceholderView,
+    component: TrainingLab,
     meta: { requiresAuth: true, title: "训练实验室" },
   },
   {
     path: "/api-keys",
     name: "api-keys",
-    component: PlaceholderView,
+    component: ApiKeysView,
     meta: { requiresAuth: true, title: "API 密钥库" },
   },
   {
     path: "/maps",
     name: "maps",
-    component: PlaceholderView,
+    component:GeoIntelView,
     meta: { requiresAuth: true, title: "地理情报" },
   },
 ];

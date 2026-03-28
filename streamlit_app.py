@@ -63,7 +63,7 @@ PROMPT_EXAMPLES = {
 def get_prompt_by_key(key: str) -> str:
     return PROMPT_NAME_MAP.get(key, '')
 
-"""Highlight utilities with dynamic field awareness per prompt type and pastel colors."""
+# Highlight utilities with dynamic field awareness per prompt type and pastel colors.
 
 # 定义每类 Prompt 常见字段（尽量覆盖 prompts.py 中的类型）
 PROMPT_CATEGORY_FIELDS = {
